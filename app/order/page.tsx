@@ -8,7 +8,7 @@ import { OrderAchievements } from "@/components/OrderAchievements";
 import { Receipt } from "@/components/Receipt";
 import { SoundToggle } from "@/components/SoundToggle";
 import { StatsPanel } from "@/components/StatsPanel";
-import { ShareSheet } from "@/components/ShareSheet";
+import { ShareStudio } from "@/components/ShareStudio";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { burstConfetti } from "@/lib/confetti";
 import { leaderboard } from "@/lib/leaderboard";
@@ -258,7 +258,7 @@ export default function OrderPage() {
           Share your haul
         </button>
         <p className="text-center text-[11px] leading-relaxed text-subtle">
-          Sends a link. Whoever opens it can steal your cart or try to beat you.
+          Post the image, or send the link so they can steal your haul.
         </p>
 
         <div className="mt-2 grid grid-cols-3 gap-2">
@@ -349,7 +349,12 @@ export default function OrderPage() {
       </div>
 
       <StatsPanel open={statsOpen} onClose={() => setStatsOpen(false)} />
-      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} haul={haul} />
+      <ShareStudio
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        billionaire={billionaire}
+        haul={haul}
+      />
 
       <ConfirmDialog
         open={confirmReset}

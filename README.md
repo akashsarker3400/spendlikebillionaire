@@ -59,7 +59,9 @@ The package manager is pnpm, pinned by `packageManager` in `package.json` and lo
 
 **Compete with yourself.** A local leaderboard ranks your top 10 runs three ways: most spent, most items, and fastest to burn half the fortune.
 
-**Share it, and make it a game.** Every run compresses into a link — `/h/<code>` — that carries the whole receipt. Paste it into WhatsApp or X and it unfurls as a generated card. Whoever opens it can **Steal this haul** (their exact cart, re-priced to today) or **Beat them** (same fortune, their score as a target, a progress bar chasing it).
+**Share it, and make it a game.** Every run compresses into a link — `/h/<code>` — that carries the whole receipt. Paste it into WhatsApp, Facebook, or X and it unfurls as a generated card with the billionaire's portrait, the amount, and the top items. Whoever opens it can **Steal this haul** (their exact cart, re-priced to today) or **Beat them** (same fortune, their score as a target, a progress bar chasing it).
+
+**A share studio.** After checkout, pick a look and post the image: three templates (**Poster**, **Clean**, **Receipt**) × three formats (**Square** 1080×1080 for a feed, **Story** 1080×1920 for a status, **Wide** 1200×630 for a link). Live preview, exported at full resolution via `html-to-image`.
 
 **Achievements, XP, and levels.** 26 achievements from *First Blood* to *Buy The Catalogue*, three of them secret. XP levels you from Window Shopper to Fortune Destroyer.
 
@@ -144,12 +146,21 @@ A 21-item, $924B haul is **104 characters**. A Bengali-plus-emoji nickname survi
 
 Two rules. `spent` is *stored*, not recomputed, so a shared receipt keeps showing the number its author saw even after a price update. But `stealHaul` re-buys every line through the normal affordability clamp at *today's* prices, so a price rise drops the cheap tail rather than letting the cart exceed the fortune.
 
-### The OG card has two hard constraints
+### Share images: two renderers, two sets of rules
+
+There are two completely different image pipelines, and code cannot be shared between them.
+
+**`components/ShareImage.tsx`** runs in the browser and is rasterised by `html-to-image`. It uses inline styles with literal colours and a system font stack — no Tailwind classes, no CSS variables, no webfont. html-to-image clones the node into a detached document where `var(--line)` resolves to nothing and an unloaded webfont silently becomes Times New Roman. One `u = width / 1080` scale unit drives every dimension, so each template is written once and works at all three formats.
+
+**`app/h/[code]/opengraph-image.tsx`** runs on the edge and is rasterised by Satori.
+
+### The OG card has three hard constraints
 
 `app/h/[code]/opengraph-image.tsx` runs on the edge and is rendered by Satori, which is not a browser:
 
 1. **Any `<div>` with more than one child needs an explicit `display: flex`.** Interpolating two text nodes into one div counts, and it fails at request time with a 500, not at build time. Every text node in that file is a single precomputed string.
-2. **Emoji require a font fetched over the network at render time.** The card uses product names instead, so an unfurl can never depend on a CDN.
+2. **Emoji require a font fetched over the network at render time.** Products without a photo get a deterministic coloured tile with an initial, never an emoji.
+3. **No filesystem and no `<img src="/foo.jpg">`.** Portraits and product shots are inlined as data URIs in `data/imageThumbs.ts` (~290 KB of 96–112px JPEGs), generated at build time. Satori also cannot parse `hsl()` inside a gradient — it throws at request time — so those tiles compute hex.
 
 ### Swapping the leaderboard for a real backend
 
