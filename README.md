@@ -30,7 +30,16 @@ There is no backend and no database — everything lives in the browser. But the
 
 Deploys to Vercel with zero configuration.
 
-**Coolify / Nixpacks / Dokku:** the package manager is pnpm, pinned by `packageManager` in `package.json` and locked by `pnpm-lock.yaml`. Both must be committed and must agree — Nixpacks reads the `packageManager` field, then runs `pnpm i --frozen-lockfile`, which fails outright if `pnpm-lock.yaml` is missing. **Do not commit a `package-lock.json` alongside it.** The server binds `0.0.0.0` and honours `$PORT`; expose port 3000.
+**Coolify / Dokku / any Docker host:** use the committed `Dockerfile`, not Nixpacks. In Coolify, set **Build Pack = Dockerfile** and expose port **3000**.
+
+Nixpacks technically works, but it builds a ~2.5 GB image (Ubuntu base + a full Nix store + the whole 332 MB `node_modules`), which exhausts the disk on a small server while exporting layers. The `Dockerfile` uses Next's `output: "standalone"` — only the traced modules ship, so `node_modules` drops from 332 MB to 25 MB and the runtime image is roughly a tenth the size.
+
+Two things that will silently break a standalone image:
+
+- **`public/` and `.next/static` are not included in `.next/standalone`.** The Dockerfile copies them explicitly. Miss either and the app boots fine with no CSS and no images.
+- **The entrypoint is `node server.js`, not `next start`.** The standalone bundle has no `next` binary. `HOSTNAME=0.0.0.0` is required or the container is unreachable despite the process running.
+
+The package manager is pnpm, pinned by `packageManager` in `package.json` and locked by `pnpm-lock.yaml`. Both must be committed and must agree. **Do not commit a `package-lock.json` alongside it** — Nixpacks reads the `packageManager` field and then fails with `ERR_PNPM_NO_LOCKFILE`.
 
 ## Features
 
