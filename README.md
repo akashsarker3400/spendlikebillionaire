@@ -112,9 +112,17 @@ Two consequences worth knowing. Removing from the cart refunds the reserve; remo
 
 ### Live net worth
 
-`GET /api/networth` tries to read the Forbes real-time billionaires list, caches for 24 hours, and matches people by normalised name. If the fetch fails, times out (4s), or matches nobody, the route returns the hardcoded values from `data/billionaires.ts` with a `200`. **The route never returns an error**, and the landing page renders static values immediately regardless, then merges live ones in if they arrive.
+`GET /api/networth` reads the Forbes real-time billionaires list and matches people by normalised name. If the fetch fails, times out, or matches nobody, it returns the hardcoded values from `data/billionaires.ts` with a `200`. **The route never returns an error**, and the landing page renders static values immediately regardless, then merges live ones in if they arrive.
 
-Both paths are real: Forbes intermittently answers with a `503`, and the game is identical either way. Because live figures reshuffle the ranking (Larry Page currently outranks Bernard Arnault, which the static list doesn't reflect), the landing grid sorts on whatever values it's actually displaying rather than on array order.
+Three things about that endpoint, each of which cost a debugging session:
+
+- **It answers `503` to anything without a browser `User-Agent`.** Because the fallback is silent by design, this looks like nothing is wrong — the site just quietly shows January's numbers forever. Check `source` in the response: `"live"` or `"static"`.
+- **The unfiltered payload is 42 MB.** `?fields=personName,finalWorth` trims it to ~184 KB.
+- **The route must be `dynamic = "force-dynamic"`.** It used to be statically generated with `revalidate = 86400`, which baked whatever Forbes returned *at docker build time* into the image. One `503` during the build served stale data to every visitor for 24 hours.
+
+Successful responses are cached in memory for 6 hours. **Failures are never cached** and are sent with `no-store`, so one bad minute at Forbes can't poison the next six hours. Set `NETWORTH_SOURCE_URL` to a dead URL to exercise the fallback path.
+
+Because live figures reshuffle the ranking (Larry Page currently outranks Bezos, which the static list doesn't reflect), the landing grid sorts on whatever values it's actually displaying rather than on array order.
 
 To refresh the fallback numbers, edit `data/billionaires.ts` and bump `NET_WORTH_LAST_UPDATED` — it's shown in the footer.
 
