@@ -24,7 +24,13 @@ pnpm typecheck  # tsc --noEmit
 pnpm lint       # next lint
 ```
 
-Deploys to Vercel with zero configuration. There is no backend and no database — everything lives in the browser.
+## Deploying
+
+There is no backend and no database — everything lives in the browser. But the app is **not** a static export: `app/h/[code]/opengraph-image.tsx` runs on the edge runtime to render share cards, so it needs a real Node/Vercel server (`next build && next start`).
+
+Deploys to Vercel with zero configuration.
+
+**Coolify / Nixpacks / Dokku:** the package manager is pnpm, pinned by `packageManager` in `package.json` and locked by `pnpm-lock.yaml`. Both must be committed and must agree — Nixpacks reads the `packageManager` field, then runs `pnpm i --frozen-lockfile`, which fails outright if `pnpm-lock.yaml` is missing. **Do not commit a `package-lock.json` alongside it.** The server binds `0.0.0.0` and honours `$PORT`; expose port 3000.
 
 ## Features
 
