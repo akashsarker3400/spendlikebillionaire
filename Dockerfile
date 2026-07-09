@@ -29,6 +29,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Without a heap cap, Node grows until the kernel OOM-killer takes it out: the
+# build dies with exit 255 and prints nothing at all. With one, you get an
+# actual "JavaScript heap out of memory" stack trace. 2 GB leaves room for
+# Coolify's own stack on a 4 GB box.
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN pnpm build
 
 # ---------------------------------------------------------------------- runner
