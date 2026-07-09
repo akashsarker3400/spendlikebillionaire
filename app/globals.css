@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #ffffff;
+    --bg-muted: #fafafa;
+    --fg: #171717;
+    --fg-muted: #666666;
+    --line: #eaeaea;
+    --card: #ffffff;
+  }
+
+  .dark {
+    --bg: #0a0a0a;
+    --bg-muted: #111111;
+    --fg: #ededed;
+    --fg-muted: #8f8f8f;
+    --line: #262626;
+    --card: #0f0f0f;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-muted);
+    color: var(--fg);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Every number in this app is a number that changes. Stop the jitter. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  :focus-visible {
+    outline: 2px solid #0070f3;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Hide the number-input spinners on the quantity stepper. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .surface {
+    background-color: var(--card);
+    border: 1px solid var(--line);
+  }
+
+  .hairline {
+    border-color: var(--line);
+  }
+
+  /* Thermal paper: a faint fibre speckle plus a warm top-down wash. */
+  .receipt-paper {
+    background-color: #fffefb;
+    background-image:
+      radial-gradient(circle at 20% 12%, rgba(0, 0, 0, 0.022) 0.6px, transparent 0.7px),
+      radial-gradient(circle at 68% 47%, rgba(0, 0, 0, 0.02) 0.6px, transparent 0.7px),
+      radial-gradient(circle at 41% 83%, rgba(0, 0, 0, 0.022) 0.6px, transparent 0.7px),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.014), rgba(0, 0, 0, 0));
+    background-size: 37px 41px, 53px 47px, 29px 61px, 100% 100%;
+  }
+
+  /* Torn edges, top and bottom of the receipt. */
+  .receipt-tear-top,
+  .receipt-tear-bottom {
+    height: 10px;
+    background-image: linear-gradient(
+      -45deg,
+      transparent 33.333%,
+      #fffefb 33.333%,
+      #fffefb 66.667%,
+      transparent 66.667%
+    ),
+    linear-gradient(
+      45deg,
+      transparent 33.333%,
+      #fffefb 33.333%,
+      #fffefb 66.667%,
+      transparent 66.667%
+    );
+    background-size: 12px 20px;
+  }
+
+  .receipt-tear-top {
+    transform: rotate(180deg);
+  }
+
+  .glow {
+    background: radial-gradient(
+      60% 60% at 50% 40%,
+      rgba(0, 112, 243, 0.09),
+      transparent 70%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    /* Negative delay, not 0: a staggered entrance with `animation-fill-mode:
+       backwards` would otherwise hold its from-state (opacity 0) for the whole
+       delay, leaving cards invisible for hundreds of milliseconds. */
+    animation-delay: -1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
